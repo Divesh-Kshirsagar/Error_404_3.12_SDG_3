@@ -1,0 +1,140 @@
+<!-- Queue Tables Partial - Used for HTMX updates -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Senior Queue (High Risk > 0.7) -->
+    <div class="glass-dark rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-gradient-to-r from-red-500/20 to-orange-500/20">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-white">Senior Doctor Queue</h2>
+                    <p class="text-sm text-gray-400">High Priority (Risk > 0.7)</p>
+                </div>
+                <span class="ml-auto bg-red-500/30 text-red-300 px-3 py-1 rounded-full text-sm font-medium">
+                    {{ senior_queue.count }}
+                </span>
+            </div>
+        </div>
+
+        <div class="divide-y divide-white/5">
+            {% for case in senior_queue %}
+            <div class="queue-row px-6 py-4">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="font-medium text-white">{{ case.patient.name }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                {% if case.risk_score >= 0.9 %}risk-critical{% else %}risk-high{% endif %} text-white">
+                                {{ case.risk_score|floatformat:2 }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-2">{{ case.patient.phone }}</p>
+                        <div class="flex flex-wrap gap-1 mb-2">
+                            {% for symptom in case.symptoms %}
+                            <span class="px-2 py-0.5 bg-white/10 rounded-full text-xs text-gray-300">
+                                {{ symptom }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        <p class="text-xs text-gray-500">{{ case.created_at|timesince }} ago</p>
+                    </div>
+
+                    <form method="post" hx-post="{% url 'clinic:dashboard' %}" hx-target="#queue-container"
+                        hx-swap="innerHTML">
+                        {% csrf_token %}
+                        <input type="hidden" name="case_id" value="{{ case.id }}">
+                        <input type="hidden" name="action" value="complete">
+                        <button type="submit"
+                            class="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all duration-300 text-sm font-medium">
+                            Complete
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-12 text-center">
+                <svg class="w-12 h-12 mx-auto text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-gray-500">No high-priority cases</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Junior Queue (Low-Medium Risk <= 0.7) -->
+    <div class="glass-dark rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-gradient-to-r from-primary-500/20 to-teal-500/20">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-teal-500 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-white">Junior Doctor Queue</h2>
+                    <p class="text-sm text-gray-400">Standard Priority (Risk ≤ 0.7)</p>
+                </div>
+                <span class="ml-auto bg-primary-500/30 text-primary-300 px-3 py-1 rounded-full text-sm font-medium">
+                    {{ junior_queue.count }}
+                </span>
+            </div>
+        </div>
+
+        <div class="divide-y divide-white/5">
+            {% for case in junior_queue %}
+            <div class="queue-row px-6 py-4">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="font-medium text-white">{{ case.patient.name }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                {% if case.risk_score >= 0.5 %}risk-medium{% else %}risk-low{% endif %} text-white">
+                                {{ case.risk_score|floatformat:2 }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-2">{{ case.patient.phone }}</p>
+                        <div class="flex flex-wrap gap-1 mb-2">
+                            {% for symptom in case.symptoms %}
+                            <span class="px-2 py-0.5 bg-white/10 rounded-full text-xs text-gray-300">
+                                {{ symptom }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        <p class="text-xs text-gray-500">{{ case.created_at|timesince }} ago</p>
+                    </div>
+
+                    <form method="post" hx-post="{% url 'clinic:dashboard' %}" hx-target="#queue-container"
+                        hx-swap="innerHTML">
+                        {% csrf_token %}
+                        <input type="hidden" name="case_id" value="{{ case.id }}">
+                        <input type="hidden" name="action" value="complete">
+                        <button type="submit"
+                            class="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all duration-300 text-sm font-medium">
+                            Complete
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-12 text-center">
+                <svg class="w-12 h-12 mx-auto text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-gray-500">No standard cases waiting</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

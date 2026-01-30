@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Dashboard - SmartQ{% endblock %}
+
+{% block content %}
+<div class="slide-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Doctor Dashboard</h1>
+            <p class="text-slate-500 text-sm">Manage patient flow and medical records</p>
+        </div>
+        <div class="flex gap-4">
+            <!-- Next Patient Button -->
+            <form method="post" hx-post="{% url 'clinic:dashboard' %}" hx-target="#dashboard-content"
+                hx-swap="innerHTML">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="next_patient">
+                <button type="submit"
+                    class="px-6 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold shadow-sm transition-all flex items-center gap-2">
+                    <span>Call Next Patient</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content (HTMX Target) -->
+    <div id="dashboard-content" hx-get="{% url 'clinic:queue_update' %}" hx-trigger="every 10s">
+        {% include 'clinic/partials/dashboard_content.html' %}
+    </div>
+
+</div>
+{% endblock %}

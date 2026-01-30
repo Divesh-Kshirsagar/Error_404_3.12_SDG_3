@@ -1,0 +1,191 @@
+<div class="grid grid-cols-12 gap-6">
+    <!-- Left Column: Patient Queue -->
+    <div class="col-span-12 lg:col-span-4 space-y-6">
+        <!-- Queue Stats -->
+        <div class="glass-dark rounded-2xl p-4 flex items-center justify-between">
+            <span class="text-gray-400 font-medium">Waiting Room</span>
+            <span class="bg-primary-500/20 text-primary-300 px-3 py-1 rounded-full text-sm font-bold">{{ total_waiting
+                }} Patients</span>
+        </div>
+
+        <!-- Senior Queue -->
+        <div class="glass-dark rounded-2xl overflow-hidden">
+            <div class="px-4 py-3 bg-red-500/10 border-b border-red-500/20 flex items-center justify-between">
+                <h3 class="text-red-300 font-medium text-sm">Emergency / Senior ({{ senior_queue.count }})</h3>
+            </div>
+            <div class="divide-y divide-white/5 max-h-60 overflow-y-auto">
+                {% for case in senior_queue %}
+                <div class="p-3 hover:bg-white/5 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-white font-medium text-sm">{{ case.patient.name }}</p>
+                            <p class="text-xs text-gray-400">#{{ case.token_number }} • Risk: {{
+                                case.risk_score|floatformat:2 }}</p>
+                        </div>
+                        <span class="text-xs text-gray-500">{{ case.created_at|time:"H:i" }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-4 text-center text-xs text-gray-500">No high priority cases</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Junior Queue -->
+        <div class="glass-dark rounded-2xl overflow-hidden">
+            <div class="px-4 py-3 bg-primary-500/10 border-b border-primary-500/20 flex items-center justify-between">
+                <h3 class="text-primary-300 font-medium text-sm">General / Junior ({{ junior_queue.count }})</h3>
+            </div>
+            <div class="divide-y divide-white/5 max-h-60 overflow-y-auto">
+                {% for case in junior_queue %}
+                <div class="p-3 hover:bg-white/5 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-white font-medium text-sm">{{ case.patient.name }}</p>
+                            <p class="text-xs text-gray-400">#{{ case.token_number }} • Risk: {{
+                                case.risk_score|floatformat:2 }}</p>
+                        </div>
+                        <span class="text-xs text-gray-500">{{ case.created_at|time:"H:i" }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-4 text-center text-xs text-gray-500">No general cases</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Active Patient Workspace -->
+    <div class="col-span-12 lg:col-span-8">
+        {% if active_case %}
+        <div
+            class="glass-dark rounded-3xl p-6 border border-primary-500/30 shadow-[0_0_50px_-15px_rgba(14,165,233,0.1)]">
+            <!-- Active Patient Header -->
+            <div class="flex items-start justify-between mb-8 border-b border-white/10 pb-6">
+                <div class="flex gap-4">
+                    <div
+                        class="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-xl font-bold text-white">
+                        {{ active_case.patient.name|slice:":1" }}
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">{{ active_case.patient.name }}</h2>
+                        <div class="flex gap-3 text-sm text-gray-400 mt-1">
+                            <span>Age: {{ active_case.patient.age|default:"N/A" }}</span>
+                            <span>•</span>
+                            <span>Token: #{{ active_case.token_number }}</span>
+                            <span>•</span>
+                            <span class="text-primary-300">{{ active_case.patient.phone }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Risk Score</div>
+                    <div
+                        class="text-2xl font-bold {% if active_case.risk_score > 0.7 %}text-red-400{% else %}text-green-400{% endif %}">
+                        {{ active_case.risk_score|floatformat:2 }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8">
+                <!-- Medical Context -->
+                <div class="space-y-6">
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Transcript</label>
+                        <div class="bg-black/20 rounded-xl p-4 text-gray-300 text-sm italic leading-relaxed">
+                            "{{ active_case.transcript }}"
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">AI
+                            Symptoms</label>
+                        <div class="flex flex-wrap gap-2">
+                            {% for s in active_case.symptoms %}
+                            <span class="px-3 py-1 bg-white/10 rounded-full text-xs text-gray-300">{{ s }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Patient History -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Patient
+                            History</label>
+                        <div class="space-y-3">
+                            {% for history in patient_history %}
+                            <div class="bg-white/5 rounded-lg p-3 text-sm">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-300">{{ history.created_at|date:"M d, Y" }}</span>
+                                    <span class="text-xs text-gray-500">{{ history.assigned_doctor }}</span>
+                                </div>
+                                <p class="text-gray-400 line-clamp-1">{{ history.diagnosis|default:"No diagnosis
+                                    recorded" }}</p>
+                            </div>
+                            {% empty %}
+                            <p class="text-sm text-gray-500 italic">No previous visits</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctor Input -->
+                <div class="space-y-6">
+                    <form id="medical-record-form" hx-post="{% url 'clinic:dashboard' %}"
+                        hx-trigger="change delay:500ms" hx-swap="none">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="save_record">
+                        <input type="hidden" name="case_id" value="{{ active_case.id }}">
+
+                        <div class="mb-4">
+                            <label
+                                class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Diagnosis</label>
+                            <textarea name="diagnosis" rows="3"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-none"
+                                placeholder="Enter diagnosis...">{{ active_case.diagnosis }}</textarea>
+                        </div>
+
+                        <div class="mb-6">
+                            <label
+                                class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Prescription</label>
+                            <textarea name="prescription" rows="5"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-none"
+                                placeholder="Enter prescription...">{{ active_case.prescription }}</textarea>
+                        </div>
+                    </form>
+
+                    <form method="post" hx-post="{% url 'clinic:dashboard' %}" hx-target="#dashboard-content"
+                        hx-swap="innerHTML">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="complete_current">
+                        <input type="hidden" name="case_id" value="{{ active_case.id }}">
+
+                        <button type="submit"
+                            class="w-full py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-medium transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Complete Visit
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div
+            class="glass-dark rounded-3xl p-12 text-center border-2 border-dashed border-white/10 flex flex-col items-center justify-center h-full min-h-[500px]">
+            <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">No Active Patient</h3>
+            <p class="text-gray-400 mb-8 max-w-xs">There is no patient currently in your examination room. Call the next
+                patient to begin.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>

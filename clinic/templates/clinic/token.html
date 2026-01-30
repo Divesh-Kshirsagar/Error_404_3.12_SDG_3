@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Token - SmartQ{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto slide-in text-center pt-10">
+    <div class="glass-dark rounded-3xl p-8 border border-white/10 relative overflow-hidden">
+        <!-- Shine effect -->
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-primary-500/20 rounded-full blur-3xl"></div>
+
+        <h1 class="text-gray-400 font-medium mb-6">Your Token Number</h1>
+
+        <!-- Token Display -->
+        <div
+            class="text-8xl font-black bg-gradient-to-br from-white via-primary-200 to-primary-400 bg-clip-text text-transparent mb-8">
+            #{{ case.token_number }}
+        </div>
+
+        <div class="space-y-6">
+            <!-- Wait Time -->
+            <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <p class="text-gray-400 text-sm mb-1">Estimated Wait Time</p>
+                <p class="text-2xl font-bold text-white">{{ est_wait_time }} mins</p>
+            </div>
+
+            <!-- Doctor Assignment -->
+            <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                <p class="text-gray-400 text-sm mb-1">Assigned To</p>
+                <div class="text-xl font-bold text-accent-300">{{ case.assigned_doctor }}</div>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-white/10">
+            <p class="text-sm text-gray-500">
+                Please wait in the lobby. Your number will be called shortly.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-6">
+        <a href="{% url 'clinic:intake' %}" class="text-primary-400 hover:text-white transition-colors text-sm">
+            Go back to Intake (Demo Only)
+        </a>
+    </div>
+</div>
+{% endblock %}
