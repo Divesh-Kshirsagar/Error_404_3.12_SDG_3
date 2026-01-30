@@ -24,7 +24,9 @@ def create_tables():
                 risk_level TEXT,
                 assigned_tier TEXT,
                 status TEXT DEFAULT 'WAITING',
+                ai_summary TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP,
                 doctor_notes TEXT,
                 FOREIGN KEY (patient_phone) REFERENCES patients(phone_number)
             )
