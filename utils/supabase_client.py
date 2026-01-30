@@ -8,29 +8,36 @@ Handles all database operations:
 - Real-time sync between kiosk and dashboard
 """
 
-from supabase import create_client
+import os
+from supabase import create_client, Client
 
 
-def get_supabase_client():
-    """Initialize and return Supabase client"""
-    pass
+_supabase_client = None
 
 
-def add_patient(patient_data):
-    """Add new patient to database"""
-    pass
+def get_supabase() -> Client:
+    """
+    Get or create Supabase client instance (singleton pattern)
+    
+    Returns:
+        Client: Supabase client instance
+        
+    Raises:
+        ValueError: If SUPABASE_URL or SUPABASE_KEY not set in environment
+    """
+    global _supabase_client
+    
+    if _supabase_client is None:
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_KEY")
+        
+        if not url or not key:
+            raise ValueError(
+                "Missing Supabase credentials. "
+                "Set SUPABASE_URL and SUPABASE_KEY environment variables."
+            )
+        
+        _supabase_client = create_client(url, key)
+    
+    return _supabase_client
 
-
-def update_queue(patient_id, queue_type, risk_score):
-    """Update queue with new patient based on risk"""
-    pass
-
-
-def get_queue(doctor_type):
-    """Fetch queue for specific doctor type (junior/senior)"""
-    pass
-
-
-def mark_patient_seen(patient_id, diagnosis):
-    """Mark patient as seen and store diagnosis"""
-    pass
