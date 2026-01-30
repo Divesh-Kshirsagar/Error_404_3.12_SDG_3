@@ -1,34 +1,49 @@
 """
-Configuration & Constants
-
-Central configuration for AarogyaQueue system.
-Modify thresholds and settings here.
+AarogyaQueue Configuration
 """
 
 # Risk Score Thresholds
-RISK_THRESHOLDS = {
-    'high': 0.7,      # Score >= 0.7 → High risk
-    'medium': 0.4,    # Score 0.4-0.7 → Medium risk
-    'low': 0.0        # Score < 0.4 → Low risk
+RISK_LOW_THRESHOLD = 0.4
+RISK_MEDIUM_THRESHOLD = 0.7
+
+RISK_LEVELS = {
+    'LOW': (0.0, RISK_LOW_THRESHOLD),
+    'MEDIUM': (RISK_LOW_THRESHOLD, RISK_MEDIUM_THRESHOLD),
+    'HIGH': (RISK_MEDIUM_THRESHOLD, 1.0)
 }
 
-# Queue Assignment
-QUEUE_TYPES = {
-    'senior': ['high', 'medium'],   # Senior doctors handle high & medium
-    'junior': ['low']                # Junior doctors handle low risk
+# Doctor Tier Assignment
+DOCTOR_JUNIOR = 'JUNIOR'
+DOCTOR_SENIOR = 'SENIOR'
+
+QUEUE_ASSIGNMENT = {
+    'LOW': DOCTOR_JUNIOR,
+    'MEDIUM': DOCTOR_SENIOR,
+    'HIGH': DOCTOR_SENIOR
 }
 
-# Supabase Configuration (use environment variables in production)
+# Supported Languages
+SUPPORTED_LANGUAGES = [
+    'en',  # English
+    'hi',  # Hindi
+    'mr',  # Marathi
+]
+
+# Wait Time Estimation
+DEFAULT_CONSULTATION_TIME_MINUTES = 15
+JUNIOR_DOCTOR_CONSULTATION_TIME_MINUTES = 10
+SENIOR_DOCTOR_CONSULTATION_TIME_MINUTES = 20
+
+# Database Configuration
 SUPABASE_URL = ""
 SUPABASE_KEY = ""
 
-# OpenAI Configuration (for LLM extraction)
+# LLM Configuration
 OPENAI_API_KEY = ""
+LLM_MODEL = "gpt-4"
+LLM_MAX_TOKENS = 500
 
 # Application Settings
 MAX_QUEUE_SIZE = 100
-ESTIMATED_CONSULTATION_TIME = 15  # minutes per patient
-
-# UI Settings
 KIOSK_TITLE = "AarogyaQueue - Patient Registration"
 DASHBOARD_TITLE = "AarogyaQueue - Doctor Dashboard"
