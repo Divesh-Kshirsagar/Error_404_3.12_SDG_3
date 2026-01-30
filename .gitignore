@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+
+# Database
+*.db-journal
+
+# Temp files
+temp_audio.wav
+*.wav
+*.mp3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+
+# Old/Legacy files (kept for reference, not used in production)
+ai_processing.py
+ml_model.py
+predict_risk.py
+patient_app.py
+doctor_app.py
+database.py
+database_setup.sql
+setup_database.py
+
+# Logs
+*.log
