@@ -6,8 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 
 // Patient Components
-import PatientLogin from './components/patient/PatientLogin';
-import PatientRegister from './components/patient/PatientRegister';
+import PatientAuth from './components/patient/PatientAuth';
 import PatientHome from './components/patient/PatientHome';
 import SubmitSymptoms from './components/patient/SubmitSymptoms';
 
@@ -54,8 +53,7 @@ function App() {
           <Route path="/" element={<Home />} />
 
           {/* Patient Routes */}
-          <Route path="/patient" element={<PatientLogin />} />
-          <Route path="/patient/register" element={<PatientRegister />} />
+          <Route path="/patient" element={<PatientAuth />} />
           <Route path="/patient/home" element={<PatientHome />} />
           <Route path="/patient/submit-symptoms" element={<SubmitSymptoms />} />
 
