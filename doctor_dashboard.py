@@ -103,6 +103,31 @@ def mark_patient_completed(visit_id, diagnosis, doctor_notes=""):
         }
 
 
+def fetch_recent_completed_visits(doctor_tier, limit=5):
+    """
+    Fetch recently completed visits for this doctor tier
+    
+    Args:
+        doctor_tier: 'JUNIOR' or 'SENIOR'
+        limit: Number of recent visits to fetch
+    
+    Returns:
+        list: Recent completed visits
+    """
+    try:
+        supabase = get_supabase()
+        
+        response = supabase.table('visits').select('*').eq(
+            'status', 'COMPLETED'
+        ).eq(
+            'doctor_tier', doctor_tier
+        ).order('completed_at', desc=True).limit(limit).execute()
+        
+        return response.data if response.data else []
+    except Exception as e:
+        return []
+
+
 def init_session_state():
     """Initialize session state"""
     if 'authenticated' not in st.session_state:
@@ -205,6 +230,45 @@ def show_patient_card(patient_data):
 
 def show_dashboard():
     """Main dashboard view"""
+    
+    # Sidebar: Recent completed cases
+    with st.sidebar:
+        st.markdown("### 📊 Recent Cases")
+        doctor = st.session_state.doctor_info
+        recent_cases = fetch_recent_completed_visits(doctor.get('role'), limit=5)
+        
+        if recent_cases:
+            for case in recent_cases:
+                risk_color = get_risk_badge_color(case.get('risk_level', 'LOW'))
+                st.markdown(f"""
+                <div style='padding: 10px; margin-bottom: 10px; border-left: 4px solid {risk_color}; 
+                background-color: #f0f2f6; border-radius: 5px;'>
+                    <strong>Token #{case.get('id')}</strong><br>
+                    <small>Risk: {case.get('risk_level', 'N/A')}</small><br>
+                    <small>Diagnosis: {case.get('diagnosis', 'N/A')[:50]}...</small>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("No completed cases yet")
+        
+        st.markdown("---")
+        st.markdown("**Queue Stats**")
+        
+        # Quick queue count
+        try:
+            supabase = get_supabase()
+            waiting_count = supabase.table('visits').select(
+                'id', count='exact'
+            ).eq('status', 'WAITING').eq(
+                'doctor_tier', doctor.get('role')
+            ).execute()
+            
+            count = waiting_count.count if hasattr(waiting_count, 'count') else 0
+            st.metric("Waiting", count)
+        except:
+            st.metric("Waiting", "N/A")
+    
+    # Main content area
     st.title(f"🩺 {DASHBOARD_TITLE}")
     
     # Doctor info header
@@ -244,13 +308,13 @@ def show_dashboard():
     show_patient_card(patient)
     
     # Doctor's workspace
-    st.markdown("### 🖊️ Your Notes & Diagnosis")
-    
-    # Notes area
-    doctor_notes = st.text_area(
-        "Clinical Notes (Optional)",
-        value=st.session_state.doctor_notes,
-        height=100,
+    st.markdown("### 🖊️ Your Notes & Diagnosis"and notes to auto-load next
+                        st.session_state.current_patient = None
+                        st.session_state.doctor_notes = ""
+                        
+                        # Brief pause for UX, then reload
+                        import time
+                        time.sleep(0.8
         placeholder="Add any observations or notes here...",
         key="notes_input"
     )
