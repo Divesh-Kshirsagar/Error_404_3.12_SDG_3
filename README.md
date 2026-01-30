@@ -75,8 +75,7 @@ Doctor examines the patient, enters diagnosis, and clicks "Next Patient."
 - Shows estimated wait time
 
 ### Doctor Side 
-- Doctor selects role: Junior or Senior
-- Sees only relevant patients (based on risk score)
+- Doctors sees only relevant patients (based on risk score)
 - Views patient cards with:
   - Token number
   - Risk badge (High/Medium/Low)
