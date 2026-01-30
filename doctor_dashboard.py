@@ -160,15 +160,19 @@ def show_login():
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Login 🔐", use_container_width=True, type="primary"):
             if username and password:
-                result = verify_doctor(username, password, role)
-                
-                if result['success']:
-                    st.session_state.authenticated = True
-                    st.session_state.doctor_info = result['doctor']
-                    st.success("Login successful!")
-                    st.rerun()
-                else:
-                    st.error(result['message'])
+                with st.spinner("Authenticating..."):
+                    result = verify_doctor(username, password, role)
+                    
+                    if result['success']:
+                        st.session_state.authenticated = True
+                        st.session_state.doctor_info = result['doctor']
+                        st.success("Login successful!")
+                        st.rerun()
+                    else:
+                        if "Database" in result['message'] or "error" in result['message'].lower():
+                            st.error("Unable to connect to database. Please check your connection.")
+                        else:
+                            st.error("Invalid credentials. Please try again.")
             else:
                 st.warning("Please enter username and password")
 
@@ -235,21 +239,25 @@ def show_dashboard():
     with st.sidebar:
         st.markdown("### 📊 Recent Cases")
         doctor = st.session_state.doctor_info
-        recent_cases = fetch_recent_completed_visits(doctor.get('role'), limit=5)
         
-        if recent_cases:
-            for case in recent_cases:
-                risk_color = get_risk_badge_color(case.get('risk_level', 'LOW'))
-                st.markdown(f"""
-                <div style='padding: 10px; margin-bottom: 10px; border-left: 4px solid {risk_color}; 
-                background-color: #f0f2f6; border-radius: 5px;'>
-                    <strong>Token #{case.get('id')}</strong><br>
-                    <small>Risk: {case.get('risk_level', 'N/A')}</small><br>
-                    <small>Diagnosis: {case.get('diagnosis', 'N/A')[:50]}...</small>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info("No completed cases yet")
+        try:
+            recent_cases = fetch_recent_completed_visits(doctor.get('role'), limit=5)
+            
+            if recent_cases:
+                for case in recent_cases:
+                    risk_color = get_risk_badge_color(case.get('risk_level', 'LOW'))
+                    st.markdown(f"""
+                    <div style='padding: 10px; margin-bottom: 10px; border-left: 4px solid {risk_color}; 
+                    background-color: #f0f2f6; border-radius: 5px;'>
+                        <strong>Token #{case.get('id')}</strong><br>
+                        <small>Risk: {case.get('risk_level', 'N/A')}</small><br>
+                        <small>Diagnosis: {case.get('diagnosis', 'N/A')[:50]}...</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("No completed cases yet")
+        except Exception as e:
+            st.warning("Recent cases unavailable")
         
         st.markdown("---")
         st.markdown("**Queue Stats**")
@@ -265,8 +273,9 @@ def show_dashboard():
             
             count = waiting_count.count if hasattr(waiting_count, 'count') else 0
             st.metric("Waiting", count)
-        except:
-            st.metric("Waiting", "N/A")
+        except Exception as e:
+            st.metric("Waiting", "—")
+            st.caption("Stats unavailable")
     
     # Main content area
     st.title(f"🩺 {DASHBOARD_TITLE}")
@@ -299,8 +308,15 @@ def show_dashboard():
             if result['success']:
                 st.session_state.current_patient = result['patient']
             else:
-                st.info("✅ No patients waiting in your queue")
-                st.markdown("### Queue is empty. Please wait for patients.")
+                # Check if error is connection issue or empty queue
+                if "Database" in result['message'] or "error" in result['message'].lower():
+                    st.error("⚠️ Unable to connect to database. Please check your connection and refresh.")
+                    if st.button("🔄 Retry Connection", type="primary"):
+                        st.rerun()
+                else:
+                    st.success("✅ All caught up! No patients waiting in your queue.")
+                    st.markdown("### Take a break. The next patient will appear here automatically.")
+                    st.info("💡 Tip: Click 'Refresh' button above to check for new patients.")
                 return
     
     # Display current patient
