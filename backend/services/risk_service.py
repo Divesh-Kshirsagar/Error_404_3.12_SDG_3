@@ -9,8 +9,8 @@ from typing import Optional
 import pandas as pd
 from utils.constants import SeverityLevel, RISK_THRESHOLD_HIGH, RISK_THRESHOLD_MEDIUM
 
-# Path to the ML model (from original project)
-MODEL_PATH = Path(__file__).parent.parent / "CIH-1-master" / "telemedicine-queue" / "risk_model.pkl"
+# Path to the ML model (migrated to backend/ml)
+MODEL_PATH = Path(__file__).parent.parent / "ml" / "risk_model.pkl"
 
 class RiskService:
     """Risk prediction service using pickled ML model"""
