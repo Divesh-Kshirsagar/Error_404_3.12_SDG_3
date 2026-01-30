@@ -9,9 +9,10 @@ export default function Button({
     fullWidth = true,
     disabled = false,
     size = 'large',
-    type = 'button'
+    type = 'button',
+    className = ''
 }) {
-    const baseClasses = 'font-semibold rounded-xl transition-all duration-200 shadow-lg';
+    const baseClasses = 'font-semibold rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center';
 
     const sizeClasses = {
         large: 'py-6 px-8 text-xl',
@@ -35,7 +36,7 @@ export default function Button({
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass} ${disabledClass}`}
+            className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass} ${disabledClass} ${className}`}
         >
             {children}
         </button>
