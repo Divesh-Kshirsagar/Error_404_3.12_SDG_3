@@ -10,6 +10,14 @@ import PatientAuth from './components/patient/PatientAuth';
 import PatientHome from './components/patient/PatientHome';
 import SubmitSymptoms from './components/patient/SubmitSymptoms';
 
+// Doctor Components
+import DoctorLogin from './components/doctor/DoctorLogin';
+import DoctorQueue from './components/doctor/DoctorQueue';
+import PatientDetails from './components/doctor/PatientDetails';
+
+// Admin Components
+import AdminDashboard from './components/admin/AdminDashboard';
+
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,8 +50,7 @@ const Home = () => (
   </div>
 );
 
-const DoctorPortal = () => <div className="p-8"><h1 className="text-3xl font-bold">Doctor Portal (Coming Soon)</h1></div>;
-const AdminPortal = () => <div className="p-8"><h1 className="text-3xl font-bold">Admin Portal (Coming Soon)</h1></div>;
+
 
 function App() {
   return (
@@ -57,11 +64,13 @@ function App() {
           <Route path="/patient/home" element={<PatientHome />} />
           <Route path="/patient/submit-symptoms" element={<SubmitSymptoms />} />
 
-          {/* Doctor Routes (placeholders) */}
-          <Route path="/doctor/*" element={<DoctorPortal />} />
+          {/* Doctor Routes */}
+          <Route path="/doctor" element={<DoctorLogin />} />
+          <Route path="/doctor/queue" element={<DoctorQueue />} />
+          <Route path="/doctor/patient/:visitId" element={<PatientDetails />} />
 
-          {/* Admin Routes (placeholders) */}
-          <Route path="/admin/*" element={<AdminPortal />} />
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminDashboard />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
