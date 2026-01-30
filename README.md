@@ -20,7 +20,7 @@ But most clinics don't have the staff or tools to manually sort patients by urge
 
 ---
 
-## Our Idea .
+## Our Idea 
 
 AarogyaQueue is a simple queue management system that helps small clinics automatically prioritize patients based on how serious their symptoms are—not when they arrived.
 
@@ -66,18 +66,15 @@ Doctor examines the patient, enters diagnosis, and clicks "Next Patient."
 
 ---
 
-## What We Built in This Hackathon (MVP)
-
-Here's what actually works right now after 24 hours of building:
-
-### Patient Side (Kiosk Interface)
+## What We Built
+### Patient Side
 - Phone number and year of birth entry for quick registration
 - Text input for symptoms (voice input is simulated—we didn't have time to fully integrate speech recognition)
 - AI extracts structured data from free-text symptoms
 - Displays token number, risk level, and queue position
 - Shows estimated wait time
 
-### Doctor Side (Dashboard)
+### Doctor Side 
 - Doctor selects role: Junior or Senior
 - Sees only relevant patients (based on risk score)
 - Views patient cards with:
@@ -94,7 +91,75 @@ Here's what actually works right now after 24 hours of building:
 
 ---
 
-## Why This Is Useful in the Real World
+## System Architecture
+
+```mermaid
+flowchart LR
+    subgraph Patient["Patient Kiosk (Streamlit)"]
+        P1[Phone + YOB Entry]
+        P2[Voice Input Symptoms]
+        P3[Review & Confirm Data]
+        P4[Token + Wait Time Display]
+    end
+
+    subgraph AI["AI & ML Layer"]
+        A1[LLM: Speech-to-Text]
+        A2[LLM: Extract Structured Data]
+        A3[ML Model: Risk Scoring RandomForest]
+        A4{Risk Level Assignment}
+    end
+
+    subgraph Queue["Queue Routing Logic"]
+        Q1{Risk Score ≥ Threshold?}
+        Q2[Senior Doctor Queue Sorted by Risk]
+        Q3[Junior Doctor Queue Sorted by Risk]
+    end
+
+    subgraph DB["Supabase Database"]
+        D1[(Patient Records)]
+        D2[(Visit Records)]
+        D3[(Queue State)]
+        D4[Realtime Sync]
+    end
+
+    subgraph Doctor["Doctor Dashboard (Streamlit)"]
+        DOC1[Select Role: Junior/Senior]
+        DOC2[View Assigned Queue]
+        DOC3[Patient Card: Token + Risk + Summary]
+        DOC4[Enter Diagnosis Voice/Text]
+        DOC5[Submit → Load Next Patient]
+    end
+
+    P1 --> P2
+    P2 --> A1
+    A1 --> A2
+    A2 --> P3
+    P3 --> A3
+    A3 --> A4
+    A4 --> Q1
+    
+    Q1 -->|Yes: High/Medium Risk| Q2
+    Q1 -->|No: Low Risk| Q3
+    
+    Q2 --> D3
+    Q3 --> D3
+    P3 --> D1
+    A4 --> D2
+    
+    D4 --> DOC2
+    D3 --> D4
+    
+    DOC1 --> DOC2
+    DOC2 --> DOC3
+    DOC3 --> DOC4
+    DOC4 --> DOC5
+    DOC5 --> D2
+    DOC5 -.Next Patient.-> DOC3
+    
+    P4 -.Estimated Wait.-> D3
+```
+
+---
 
 ## Why This Is Useful in the Real World
 
@@ -136,32 +201,6 @@ This is about **fairness in healthcare**—making sure limited resources go to t
 
 ---
 
-## Technology Used (Very Brief)
-
-We kept the tech stack simple so the project works reliably in a 24-hour demo:
-
-- **Streamlit:** Quick web interface for both patient and doctor sides (chose it because we could build UI fast)
-- **OpenAI API:** Converts symptoms into structured data (only for data extraction, not diagnosis)
-- **scikit-learn (Random Forest):** Custom ML model for risk scoring (works offline, no internet needed after training)
-- **Supabase:** Cloud database that syncs queues in real-time between patient and doctor apps
-- **Python:** Backend logic and ML model training
-
-**Why we didn't just use ChatGPT for everything:**  
-Large language models can "hallucinate" or give inconsistent results. For something as serious as healthcare prioritization, we built a dedicated ML model trained on medical triage data. It's more reliable and we can explain exactly why a score was given.
-
----
-
-## Limitations (Honest Section – VERY IMPORTANT)
-
-We want to be very clear about what this system does NOT do:
-
-### What We Did NOT Build
-- **No actual voice recognition:** Right now, patients type their symptoms. Voice input would be added using speech-to-text APIs.
-- **No real medical diagnosis:** This system only prioritizes—it doesn't tell anyone what disease they have.
-- **No integration with hospital records:** Patient data is temporary (session-based).
-- **No multi-language support yet:** Interface is in English (Hindi/regional languages would be added later).
-- **No user authentication:** This is a demo—a real deployment would need secure logins.
-
 ### Hackathon Constraints We Acknowledge
 - The ML model is trained on publicly available medical data, not real Indian PHC data (we didn't have access in 24 hours).
 - We haven't tested this with real doctors or patients yet (that would be the next step).
@@ -185,78 +224,6 @@ If we continue working on this after the hackathon, here are the next steps:
    Track disease patterns, peak hours, and clinic efficiency to help government allocate resources better (e.g., "Send an extra doctor to this PHC on Tuesdays").
 
 ---
-
-## Team & Hackathon Context
-
-This project was built from scratch in 24 hours by a team of 4 students at **Central India Hackathon (CIH 3.0)**.
-
-We divided the work as:
-- **Frontend development:** Patient and doctor interfaces
-- **Backend & ML:** Risk scoring model and API
-- **Data preparation:** Finding datasets and training the model
-- **Integration:** Making everything work together
-
-**What we learned:**
-- Building for real users (rural patients, overworked doctors) is very different from building for tech-savvy users
-- Simplicity beats complexity in a hackathon—we spent more time removing features than adding them
-- Healthcare is hard—we had to be very careful not to over-promise or claim we're replacing doctors
-
-**We're proud of:**
-- Building a working end-to-end system in 24 hours
-- Focusing on a real problem (not just a cool tech demo)
-- Being honest about limitations
-
----
-
-## How to Run This Project (For Judges/Developers)
-
-If you want to test the demo:
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Divesh-Kshirsagar/Error_404_3.12_SDG_3.git
-   cd Error_404_3.12_SDG_3
-   ```
-
-2. Install dependencies and start the backend:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   python app.py
-   ```
-
-3. Start the patient kiosk interface:
-   ```bash
-   cd patient-app
-   npm install
-   npm run dev
-   ```
-
-4. Start the doctor dashboard:
-   ```bash
-   cd doctor-app
-   npm install
-   npm run dev
-   ```
-
-5. Open both interfaces in your browser and test the full flow.
-
-**Note:** If OpenAI API limits are hit during the demo, the system falls back to mock data so the demo keeps working.
-
----
-
-## License & Acknowledgments
-
-**License:** MIT (free for educational use)
-
 **Thanks to:**
 - CIH 3.0 organizers for the opportunity and problem statement
-- National Health Mission for inspiring the rural healthcare focus
-- Open medical datasets that helped us train the model
-
----
-
-**Built with care for SDG 3 at Central India Hackathon 3.0**
-
-*For questions: [Your Contact Information]*
 
