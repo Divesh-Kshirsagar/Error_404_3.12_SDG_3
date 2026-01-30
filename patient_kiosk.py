@@ -23,6 +23,55 @@ from config import (
 )
 
 
+def create_visit_record(patient_id, symptoms_data, risk_result, transcript):
+    """
+    Create a visit record in Supabase
+    
+    Args:
+        patient_id: Patient identifier
+        symptoms_data: Extracted symptom information
+        risk_result: Risk calculation result
+        transcript: Original symptom description text
+    
+    Returns:
+        dict: Visit record with id and status
+    """
+    try:
+        supabase = get_supabase()
+        
+        visit_data = {
+            'patient_id': patient_id,
+            'symptoms': symptoms_data.get('symptoms', []),
+            'transcript': transcript,
+            'risk_score': risk_result.get('score'),
+            'risk_level': risk_result.get('level'),
+            'doctor_tier': risk_result.get('doctor_tier'),
+            'status': 'WAITING',
+            'created_at': datetime.now().isoformat()
+        }
+        
+        response = supabase.table('visits').insert(visit_data).execute()
+        
+        if response.data and len(response.data) > 0:
+            return {
+                'success': True,
+                'visit': response.data[0],
+                'message': 'Visit record created'
+            }
+        else:
+            return {
+                'success': False,
+                'visit': None,
+                'message': 'Failed to create visit record'
+            }
+    except Exception as e:
+        return {
+            'success': False,
+            'visit': None,
+            'message': f'Database error: {str(e)}'
+        }
+
+
 def init_session_state():
     """Initialize session state variables"""
     if 'step' not in st.session_state:
@@ -37,6 +86,8 @@ def init_session_state():
         st.session_state.risk_result = {}
     if 'token_number' not in st.session_state:
         st.session_state.token_number = None
+    if 'symptoms_text' not in st.session_state:
+        st.session_state.symptoms_text = ""
 
 
 def show_language_selection():
@@ -133,7 +184,8 @@ def show_symptom_input():
                 with st.spinner("Processing your information..."):
                     result = process_text_input(symptoms_text)
                     
-                    if result['success']:
+                    if result['success']:ymptoms_text = symptoms_text  # Save transcript
+                        st.session_state.s
                         st.session_state.extracted_data = result['data']
                         st.session_state.step = 'review'
                         st.rerun()
@@ -186,21 +238,38 @@ def show_review_and_confirm():
                 # Generate token
                 st.session_state.token_number = f"T{random.randint(1000, 9999)}"
                 
-                # Register/update patient in database
+                patient_id = None
                 try:
                     patient_info = verify_patient(
                         st.session_state.patient_data['phone'],
                         st.session_state.patient_data['yob']
                     )
                     
-                    if not patient_info['success']:
-                        register_patient(
+                    if patient_info['success']:
+                        patient_id = patient_info['patient'].get('id')
+                    else:
+                        # Register new patient
+                        registration = register_patient(
                             st.session_state.patient_data['phone'],
                             st.session_state.patient_data['yob'],
                             st.session_state.extracted_data.get('name')
                         )
+                        if registration['success']:
+                            patient_id = registration['patient'].get('id')
                     
-                    # Add to queue (would call Supabase here)
+                    # Create visit record
+                    if patient_id:
+                        visit_result = create_visit_record(
+                            patient_id=patient_id,
+                            symptoms_data=st.session_state.extracted_data,
+                            risk_result=risk_result,
+                            transcript=st.session_state.symptoms_text
+                        )
+                        
+                        if not visit_result['success']:
+                            st.warning(f"Visit record: {visit_result['message']}")
+                    else:
+                        st.warning("Could not create patient record")ere)
                     # For MVP: Just move to token display
                     
                 except Exception as e:
