@@ -1,228 +1,117 @@
-# AarogyaQueue
+# AarogyaQueue 🏥
 
-**"Because the sickest shouldn't wait the longest."**
+A smart Telemedicine Queue Optimizer MVP that streamlines patient triage and doctor assignment using AI-powered symptom analysis.
 
-Built in 24 hours for Central India Hackathon (CIH 3.0) | SDG 3: Good Health & Well-Being
+## 🚀 Features
 
----
+- **Smart Triage**: AI-powered symptom analysis (using Groq LLM) to determine severity.
+- **Auto-Queueing**: Patients automatically assigned to JUNIOR or SENIOR doctors based on risk.
+- **Voice-First Interface**: Patients can report symptoms via voice (using Groq Whisper).
+- **ATM-Style UI**: Simplified, high-contrast, large-button interface for easy accessibility.
+- **Role-Based Portals**:
+  - **Patient Portal**: Register, login, report symptoms, view wait time.
+  - **Doctor Portal**: View prioritized queue, patient details, prescribe medication.
+  - **Admin Portal**: Dashboard analytics, manage doctors.
 
-## What Problem Are We Solving?
+## 🛠️ Tech Stack
 
-In rural India, government health centers often have just 1 or 2 doctors managing 100+ patients every day. Right now, these clinics use a simple first-come-first-serve system—whoever comes first, gets treated first.
+- **Frontend**: React (Vite), Tailwind CSS v4, TanStack Query
+- **Backend**: FastAPI, SQLModel (SQLite)
+- **AI/ML**: 
+  - **Groq API**: Whisper (STT) + Llama 3 (LLM) for symptom extraction
+  - **scikit-learn**: Fallback risk prediction model
+- **Database**: SQLite (Zero config)
 
-**Why is this a problem?**
+## 📋 Prerequisites
 
-Imagine this: A patient with severe chest pain arrives at 10 AM. But there are already 40 people in line who came earlier, mostly with minor colds and fevers. That chest pain patient has to wait 3+ hours just because they came late.
+- Node.js v20+ (Required for Vite v7)
+- Python 3.9+
+- Groq API Key (Get one at [console.groq.com](https://console.groq.com))
 
-**In healthcare, arrival time should not decide who gets treated first. Medical urgency should.**
+## ⚡ Quick Start
 
-But most clinics don't have the staff or tools to manually sort patients by urgency. That's where we come in.
+### 1. Backend Setup
 
----
+```bash
+cd backend
 
-## Our Idea 
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-AarogyaQueue is a simple queue management system that helps small clinics automatically prioritize patients based on how serious their symptoms are—not when they arrived.
+# Install dependencies
+# Note: Use uv if available for faster install: uv pip install -r requirements.txt
+pip install -r requirements.txt
 
-Patients tell their symptoms (by voice or text), and our system gives them a risk score. High-risk patients go to the front of the line. Low-risk patients wait a bit longer. This way, critically ill people get faster care, and junior doctors can handle simple cases while senior doctors focus on serious ones.
+# Run the server (auto-creates database on first run)
+uvicorn main:app --reload
+```
+Backend will run at: `http://localhost:8000`  
+API Docs: `http://localhost:8000/docs`
 
-**This is not a diagnosis tool.** We don't tell anyone what disease they have. We just help organize the waiting line better.
+### 2. Frontend Setup
 
----
+```bash
+cd frontend
 
-## How AarogyaQueue Works (Simple Flow)
+# Install dependencies
+npm install
 
-Here's what happens when a patient visits a clinic using our system:
-
-**Step 1: Patient Arrives**  
-They enter their phone number and year of birth at a kiosk (tablet at the clinic entrance).
-
-**Step 2: Describe Symptoms**  
-The system asks: "What problem are you facing today?"  
-The patient speaks or types their answer (e.g., "I have fever and cough for 3 days").
-
-**Step 3: Computer Understands Symptoms**  
-Our system uses AI to convert speech to text and extract important details like age, symptoms, and how long they've been sick.
-
-**Step 4: Risk Score Is Calculated**  
-A machine learning model (trained on medical data) gives the patient a risk score from 0 to 1.  
-- **High risk (0.7–1.0)**: Serious symptoms like chest pain, breathing difficulty  
-- **Medium risk (0.4–0.7)**: Persistent fever, severe headache  
-- **Low risk (0–0.4)**: Mild cold, minor injuries
-
-**Step 5: Patient Gets Token & Wait Time**  
-The patient receives a token number and estimated wait time. They can see where they are in the queue.
-
-**Step 6: Doctor Sees the Queue**  
-Doctors log into their dashboard and select their role (Junior Doctor or Senior Doctor).  
-- Senior doctors see high and medium-risk patients.  
-- Junior doctors see low-risk patients.
-
-**Step 7: Doctor Reviews Patient Summary**  
-The doctor sees the patient's symptoms, risk score, and why they were flagged as urgent.
-
-**Step 8: Consultation Happens**  
-Doctor examines the patient, enters diagnosis, and clicks "Next Patient."
-
----
-
-## What We Built
-### Patient Side
-- Phone number and year of birth entry for quick registration
-- Text input for symptoms (voice input is simulated—we didn't have time to fully integrate speech recognition)
-- AI extracts structured data from free-text symptoms
-- Displays token number, risk level, and queue position
-- Shows estimated wait time
-
-### Doctor Side 
-- Doctors sees only relevant patients (based on risk score)
-- Views patient cards with:
-  - Token number
-  - Risk badge (High/Medium/Low)
-  - AI-generated symptom summary
-- Enters diagnosis and submits
-- Next patient automatically loads
-
-### Behind the Scenes
-- Custom machine learning model (Random Forest) calculates risk scores based on symptoms
-- Database (Supabase) stores patient records and keeps queues updated in real-time
-- Risk-based routing: Patients automatically go to the right queue
-
----
-
-## System Architecture
-
-```mermaid
-flowchart LR
-    subgraph Patient["Patient Kiosk (Streamlit)"]
-        P1[Phone + YOB Entry]
-        P2[Voice Input Symptoms]
-        P3[Review & Confirm Data]
-        P4[Token + Wait Time Display]
-    end
-
-    subgraph AI["AI & ML Layer"]
-        A1[LLM: Speech-to-Text]
-        A2[LLM: Extract Structured Data]
-        A3[ML Model: Risk Scoring RandomForest]
-        A4{Risk Level Assignment}
-    end
-
-    subgraph Queue["Queue Routing Logic"]
-        Q1{Risk Score ≥ Threshold?}
-        Q2[Senior Doctor Queue Sorted by Risk]
-        Q3[Junior Doctor Queue Sorted by Risk]
-    end
-
-    subgraph DB["Supabase Database"]
-        D1[(Patient Records)]
-        D2[(Visit Records)]
-        D3[(Queue State)]
-        D4[Realtime Sync]
-    end
-
-    subgraph Doctor["Doctor Dashboard (Streamlit)"]
-        DOC1[Select Role: Junior/Senior]
-        DOC2[View Assigned Queue]
-        DOC3[Patient Card: Token + Risk + Summary]
-        DOC4[Enter Diagnosis Voice/Text]
-        DOC5[Submit → Load Next Patient]
-    end
-
-    P1 --> P2
-    P2 --> A1
-    A1 --> A2
-    A2 --> P3
-    P3 --> A3
-    A3 --> A4
-    A4 --> Q1
-    
-    Q1 -->|Yes: High/Medium Risk| Q2
-    Q1 -->|No: Low Risk| Q3
-    
-    Q2 --> D3
-    Q3 --> D3
-    P3 --> D1
-    A4 --> D2
-    
-    D4 --> DOC2
-    D3 --> D4
-    
-    DOC1 --> DOC2
-    DOC2 --> DOC3
-    DOC3 --> DOC4
-    DOC4 --> DOC5
-    DOC5 --> D2
-    DOC5 -.Next Patient.-> DOC3
-    
-    P4 -.Estimated Wait.-> D3
+# Configure API Keys
+cp .env.local.example .env.local
+# Edit .env.local and add your VITE_GROQ_API_KEY
 ```
 
----
+**Create `.env.local`:**
+```env
+VITE_API_BASE_URL=http://localhost:8000
+VITE_APP_NAME=AarogyaQueue
+VITE_GROQ_API_KEY=your_groq_api_key_here
+```
 
-## Why This Is Useful in the Real World
+**Run Development Server:**
+```bash
+npm run dev
+```
+Frontend will run at: `http://localhost:5173`
 
-### For Clinics
-- No extra staff needed to manually triage patients
-- Works on a single tablet—minimal setup cost
-- Reduces chaos and arguments in the waiting area (everyone sees why someone was prioritized)
+## 📂 Project Structure
 
-### For Doctors
-- Senior doctors spend time on serious cases, not routine checkups
-- Junior doctors gain experience with low-risk cases without risking patient safety
-- Patient summaries save 2–3 minutes per consultation (no need to re-ask all symptoms)
+```
+AarogyaQueue/
+├── backend/                # FastAPI Application
+│   ├── api/                # API Endpoints (auth, patients, doctors)
+│   ├── ml/                 # Machine Learning Models
+│   ├── services/           # Business Logic (Risk, Queue)
+│   ├── utils/              # Constants & Helpers
+│   ├── database.py         # DB Configuration
+│   ├── main.py             # App Entry Point
+│   └── models.py           # SQLModel Database Schemas
+│
+├── frontend/               # React Application
+│   ├── src/
+│   │   ├── components/     # React Components (auth, patient, doctor, admin)
+│   │   ├── services/       # API Clients & AI Logic
+│   │   └── App.jsx         # Routing
+│   └── index.css           # Tailwind v4 Styles
+│
+└── README.md
+```
 
-### For Patients
-- Critical patients get faster care—potentially life-saving
-- Transparent system shows your position and why you're waiting
-- No need to download an app or create accounts—works immediately
+## 🧪 Testing
 
-**Real-world estimate:**  
-In a clinic with 100 patients/day, this system could reduce average wait time for high-risk cases by 30–40 minutes and help doctors see 10–15% more patients in the same time.
+### Default Credentials (from Seed Data)
 
----
+**Doctors:**
+- **Senior**: ID `1` (PIN: `1234`)
+- **Junior**: ID `3` (PIN: `1234`)
 
-## SDG Alignment & Social Impact
+**Admin:**
+- Dashboard accessible at `/admin` (No auth for MVP demo)
 
-This project directly addresses **SDG 3: Good Health & Well-Being**, specifically:
+**Patient:**
+- Register via the portal or use Seed Patient (Phone: `9876543210`, PIN: `1111`)
 
-- **Target 3.8 (Universal Health Coverage):** Makes existing rural clinics more efficient without requiring more doctors
-- **Target 3.c (Health Workforce Optimization):** Helps available doctors serve more people safely
+## 🛡️ License
 
-### Measurable Impact
-
-If deployed in just 100 Primary Health Centers across rural India:
-- **15,000+ patients prioritized daily** based on medical need, not arrival time
-- **Potentially life-saving** for emergency cases that would otherwise wait hours
-- **Reduced doctor burnout** by distributing workload intelligently
-
-This is about **fairness in healthcare**—making sure limited resources go to those who need them most urgently.
-
----
-
-### Hackathon Constraints We Acknowledge
-- The ML model is trained on publicly available medical data, not real Indian PHC data (we didn't have access in 24 hours).
-- We haven't tested this with real doctors or patients yet (that would be the next step).
-- The system assumes one clinic—multi-clinic networks would need more work.
-
-**This is an MVP (Minimum Viable Product), not a finished product ready for hospitals.**
-
----
-
-## Future Improvements
-
-If we continue working on this after the hackathon, here are the next steps:
-
-1. **WhatsApp Integration:**  
-   Patients could send a voice message to a WhatsApp number before reaching the clinic, reducing kiosk crowding.
-
-2. **Real Voice Input in Local Languages:**  
-   Add support for Hindi, Marathi, and other regional languages using Google Speech-to-Text or similar.
-
-3. **Analytics Dashboard for Health Officials:**  
-   Track disease patterns, peak hours, and clinic efficiency to help government allocate resources better (e.g., "Send an extra doctor to this PHC on Tuesdays").
-
----
-**Thanks to:**
-- CIH 3.0 organizers for the opportunity and problem statement
-
+MIT

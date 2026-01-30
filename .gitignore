@@ -1,0 +1,40 @@
+# General
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.DS_Store
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Backend - Python
+backend/venv/
+backend/env/
+backend/*.db
+backend/instance/
+backend/.pytest_cache/
+backend/coverage/
+backend/htmlcov/
+
+# Backend - Logs
+backend/*.log
+
+# Frontend - Node.js
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/.npm/
+
+# OS generated files
+thumbs.db
+desktop.ini
