@@ -51,6 +51,12 @@ if 'current_screen' not in st.session_state:
     st.session_state.current_screen = 'login'
 if 'health_tip_index' not in st.session_state:
     st.session_state.health_tip_index = 0
+if 'form_name' not in st.session_state:
+    st.session_state.form_name = ''
+if 'form_age' not in st.session_state:
+    st.session_state.form_age = 30
+if 'form_symptoms' not in st.session_state:
+    st.session_state.form_symptoms = ''
 
 # ===== HEALTH TIPS =====
 HEALTH_TIPS = [
@@ -134,6 +140,25 @@ def show_registration_screen():
     st.markdown(f"### Welcome, {patient_name}!")
     st.divider()
     
+    # Apply any extracted data from previous audio/text processing
+    if 'extracted_name' in st.session_state:
+        st.session_state.input_name = st.session_state.extracted_name
+        del st.session_state.extracted_name
+    if 'extracted_age' in st.session_state:
+        st.session_state.input_age = st.session_state.extracted_age
+        del st.session_state.extracted_age
+    if 'extracted_symptoms' in st.session_state:
+        st.session_state.input_symptoms = st.session_state.extracted_symptoms
+        del st.session_state.extracted_symptoms
+    
+    # Initialize widget keys if not present
+    if 'input_name' not in st.session_state:
+        st.session_state.input_name = st.session_state.patient_data.get('name', '')
+    if 'input_age' not in st.session_state:
+        st.session_state.input_age = 30
+    if 'input_symptoms' not in st.session_state:
+        st.session_state.input_symptoms = ''
+    
     col_form, col_voice = st.columns([3, 2], gap="large")
     
     with col_form:
@@ -141,17 +166,17 @@ def show_registration_screen():
         
         name = st.text_input(
             "👤 Full Name",
-            value=st.session_state.patient_data.get('name', ''),
             placeholder="Enter your full name",
-            help="Your complete name"
+            help="Your complete name",
+            key="input_name"
         )
         
         age = st.number_input(
             "🎂 Age",
             min_value=1,
             max_value=120,
-            value=30,
-            help="Your current age in years"
+            help="Your current age in years",
+            key="input_age"
         )
         
         st.markdown("#### 🩺 Describe Your Health Issue")
@@ -160,7 +185,8 @@ def show_registration_screen():
             height=180,
             placeholder="Example: I have fever and headache since 2 days...",
             help="Describe your symptoms in simple words",
-            label_visibility="collapsed"
+            label_visibility="collapsed",
+            key="input_symptoms"
         )
         
         st.markdown("")
@@ -183,6 +209,20 @@ def show_registration_screen():
                     transcript = transcribe_audio(audio_bytes)
                     if transcript:
                         st.success(f"✅ Recorded: \"{transcript}\"")
+                        
+                        # Extract structured data from transcript
+                        extracted = extract_patient_data(transcript)
+                        if extracted and 'error' not in extracted:
+                            # Store in temporary variables for next rerun
+                            if extracted.get('name'):
+                                st.session_state.extracted_name = extracted['name']
+                            if extracted.get('age'):
+                                st.session_state.extracted_age = int(extracted['age'])
+                            if extracted.get('symptoms'):
+                                symptoms_text = ' '.join(extracted['symptoms']) if isinstance(extracted['symptoms'], list) else extracted['symptoms']
+                                st.session_state.extracted_symptoms = symptoms_text
+                            st.success("✅ Form auto-filled! Please review and submit.")
+                            st.rerun()
                 except Exception as e:
                     st.error(f"❌ Error processing audio: {str(e)}")
         
@@ -199,7 +239,20 @@ def show_registration_screen():
         
         if st.button("📤 Use This Text", use_container_width=True):
             if text_symptoms.strip():
-                st.session_state.temp_symptoms = text_symptoms
+                # Extract data from typed text
+                extracted = extract_patient_data(text_symptoms)
+                if extracted and 'error' not in extracted:
+                    if extracted.get('name'):
+                        st.session_state.extracted_name = extracted['name']
+                    if extracted.get('age'):
+                        st.session_state.extracted_age = int(extracted['age'])
+                    if extracted.get('symptoms'):
+                        symptoms_text = ' '.join(extracted['symptoms']) if isinstance(extracted['symptoms'], list) else extracted['symptoms']
+                        st.session_state.extracted_symptoms = symptoms_text
+                else:
+                    # If extraction fails, just fill symptoms
+                    st.session_state.extracted_symptoms = text_symptoms
+                st.success("✅ Form updated!")
                 st.rerun()
     
     st.divider()
@@ -215,6 +268,13 @@ def show_registration_screen():
     if st.button("⬅️ Back to Login"):
         st.session_state.authenticated = False
         st.session_state.current_screen = 'login'
+        # Clear input fields
+        if 'input_name' in st.session_state:
+            del st.session_state.input_name
+        if 'input_age' in st.session_state:
+            del st.session_state.input_age
+        if 'input_symptoms' in st.session_state:
+            del st.session_state.input_symptoms
         st.rerun()
 
 def process_registration(name, age, symptoms):
@@ -363,6 +423,13 @@ def show_success_screen():
             st.session_state.authenticated = False
             st.session_state.token_generated = False
             st.session_state.current_screen = 'login'
+            # Clear input fields
+            if 'input_name' in st.session_state:
+                del st.session_state.input_name
+            if 'input_age' in st.session_state:
+                del st.session_state.input_age
+            if 'input_symptoms' in st.session_state:
+                del st.session_state.input_symptoms
             st.rerun()
 
 # ===== MAIN ROUTER =====

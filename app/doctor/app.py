@@ -502,6 +502,21 @@ st.markdown("""
         font-size: 0.9rem;
     }
     
+    .doctor-info-header {
+        text-align: center;
+    }
+    
+    .doctor-name-header {
+        font-weight: 700;
+        color: #1F2937;
+        font-size: 1.1rem;
+    }
+    
+    .doctor-role-header {
+        color: #6B7280;
+        font-size: 0.85rem;
+    }
+    
     /* Main Content Container */
     .main-content {
         margin-top: 90px;
@@ -509,6 +524,25 @@ st.markdown("""
         margin-left: auto;
         margin-right: auto;
         padding: 2rem;
+    }
+    
+    .queue-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #E5E7EB;
+    }
+    
+    .queue-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1F2937;
+    }
+    
+    .dashboard-tabs {
+        margin-bottom: 2rem;
     }
     
     /* Minimal Professional Doctor Login Card */
@@ -613,47 +647,35 @@ if 'show_history' not in st.session_state:
     st.session_state.show_history = False
 
 def login_page():
-    # Sticky header
-    st.markdown("""
-        <div class="sticky-header">
-            <div class="header-brand">
-                <div class="header-logo-icon">🏥</div>
-                <div class="header-brand-text">AarogyaQueue</div>
-            </div>
-            <div class="header-badge-doctor">Doctor Portal</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Main content wrapper
-    st.markdown('<div class="main-content">', unsafe_allow_html=True)
-    
     # Centered login card
-    col1, col2, col3 = st.columns([1, 1, 1])
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown('<div class="doctor-login-card">', unsafe_allow_html=True)
-        
-        # Minimal header
+        # Login header
         st.markdown("""
-            <div class="doctor-login-header">
-                <div class="doctor-login-icon">👨‍⚕️</div>
-                <div class="doctor-login-title">Doctor Access</div>
-                <div class="doctor-login-subtitle">Secure authentication required</div>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 3.5rem; margin-bottom: 1rem;">👨‍⚕️</div>
+                <div style="font-size: 1.75rem; font-weight: 700; color: #1F2937; margin-bottom: 0.5rem;">Doctor Access</div>
+                <div style="font-size: 0.9rem; color: #6B7280;">Secure authentication required</div>
             </div>
         """, unsafe_allow_html=True)
         
         # Role selection
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
+        st.markdown('<label style="font-weight: 600; color: #1F2937; font-size: 0.95rem;">Role</label>', unsafe_allow_html=True)
         role = st.selectbox(
             "Role", 
             ["JUNIOR", "SENIOR"],
-            label_visibility="visible"
+            label_visibility="collapsed"
         )
-        st.markdown('</div>', unsafe_allow_html=True)
         
-        # PIN input with security cue
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown('<div class="pin-label">Access PIN <span class="security-badge">🔒 Secure</span></div>', unsafe_allow_html=True)
+        st.markdown("")
+        
+        # PIN input
+        st.markdown('<label style="font-weight: 600; color: #1F2937; font-size: 0.95rem;">Access PIN <span style="font-size: 0.75rem; color: #6B7280; background: #F4F7F8; padding: 0.25rem 0.75rem; border-radius: 12px; margin-left: 0.5rem;">🔒 Secure</span></label>', unsafe_allow_html=True)
         pin = st.text_input(
             "PIN", 
             type="password", 
@@ -661,9 +683,9 @@ def login_page():
             label_visibility="collapsed",
             max_chars=4
         )
-        st.markdown('</div>', unsafe_allow_html=True)
         
-        st.write("")
+        st.markdown("")
+        st.markdown("")
         
         # Login button
         if st.button("Access Portal", type="primary", use_container_width=True):
@@ -679,10 +701,6 @@ def login_page():
                     st.error("Invalid credentials. Please verify your role and PIN.")
             except Exception as e:
                 st.error(f"Authentication failed: {str(e)}")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
 def complete_visit(visit_id, diagnosis, prescription):
     try:
