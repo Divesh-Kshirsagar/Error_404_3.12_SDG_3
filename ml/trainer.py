@@ -20,15 +20,20 @@ def generate_training_data(n_samples=1000):
         emergency_keywords = np.random.choice([0, 1], p=[0.95, 0.05])
         
         # Calculate risk score based on features
-        risk_score = 0.0
-        risk_score += age / 100 * 0.3  # Age factor
-        risk_score += chest_pain * 0.4
-        risk_score += breathing_difficulty * 0.3
-        risk_score += emergency_keywords * 0.8
-        risk_score += fever * 0.1
+        # Emergency keywords should dominate the risk score
+        if emergency_keywords == 1:
+            risk_score = 0.85 + np.random.uniform(0, 0.15)  # 0.85-1.0 for emergencies
+        else:
+            risk_score = 0.0
+            risk_score += age / 100 * 0.25  # Age factor (0-0.25)
+            risk_score += chest_pain * 0.35  # Chest pain (0-0.35)
+            risk_score += breathing_difficulty * 0.25  # Breathing (0-0.25)
+            risk_score += fever * 0.05  # Fever (0-0.05)
+            risk_score += headache * 0.03  # Headache (0-0.03)
+            
+            # Add some noise
+            risk_score += np.random.normal(0, 0.05)
         
-        # Add some noise
-        risk_score += np.random.normal(0, 0.1)
         risk_score = max(0.0, min(1.0, risk_score))  # Clamp to [0,1]
         
         data.append({

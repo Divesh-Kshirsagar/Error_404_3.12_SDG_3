@@ -18,13 +18,34 @@ def extract_features_from_symptoms(symptoms_text, age):
     """Extract binary features from symptom text"""
     text_lower = symptoms_text.lower()
     
+    # Critical/Emergency keywords that should trigger high risk
+    critical_keywords = [
+        'heart attack', 'stroke', 'unconscious', 'bleeding', 'hemorrhage',
+        'cancer', 'tumor', 'malignant', 'carcinoma', 'oncology',
+        'hiv', 'aids', 'seizure', 'convulsion', 'paralysis', 'paralyzed',
+        'suicide', 'overdose', 'poisoning', 'sepsis', 'septic',
+        'aneurysm', 'embolism', 'thrombosis', 'infarction',
+        'trauma', 'fracture', 'severe', 'critical', 'emergency',
+        'life-threatening', 'code blue', 'cardiac arrest', 'respiratory failure',
+        'organ failure', 'kidney failure', 'liver failure', 'coma',
+        'stabbing', 'gunshot', 'accident', 'collision'
+    ]
+    
+    # Check for critical conditions
+    has_critical = any(keyword in text_lower for keyword in critical_keywords)
+    
+    # Severity indicators
+    severity_words = ['severe', 'extreme', 'intense', 'unbearable', 'excruciating', 
+                     'massive', 'heavy', 'critical', 'acute', 'sudden']
+    has_severity = any(word in text_lower for word in severity_words)
+    
     features = {
         'age_normalized': age / 100,
         'chest_pain': 1 if any(word in text_lower for word in ['chest', 'heart', 'cardiac']) else 0,
         'breathing_difficulty': 1 if any(word in text_lower for word in ['breath', 'breathing', 'shortness']) else 0,
         'fever': 1 if any(word in text_lower for word in ['fever', 'temperature', 'hot']) else 0,
         'headache': 1 if any(word in text_lower for word in ['head', 'headache', 'migraine']) else 0,
-        'emergency_keywords': 1 if any(word in text_lower for word in ['heart attack', 'stroke', 'unconscious', 'bleeding']) else 0
+        'emergency_keywords': 1 if has_critical or has_severity else 0
     }
     
     return list(features.values())
